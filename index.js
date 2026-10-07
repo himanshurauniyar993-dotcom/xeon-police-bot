@@ -1,8 +1,8 @@
-const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, PermissionFlagsBits } = require('discord.js');
+const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, PermissionFlagsBits, ActivityType } = require('discord.js');
 const express = require('express');
 require('dotenv').config();
 
-// Express web server (Render keep-alive & Uptime/Cron ping ke liye)
+// Express web server (Render & Uptime Ping ke liye)
 const app = express();
 app.get('/', (req, res) => res.send('Xeon Police is active and guarding the server!'));
 app.listen(process.env.PORT || 3000, () => console.log('Web server is running.'));
@@ -17,7 +17,7 @@ const client = new Client({
 });
 
 // Config Settings
-const FLAGS_CHANNEL_ID = '1557375457807310899'; // ⚠️ APNE FLAGS CHANNEL KI ID SE REPLACE KARO
+const FLAGS_CHANNEL_ID = '1557375457807310899'; // ⚠️ YAHAN APNE FLAGS CHANNEL KI ID CHANGE KARO
 const GIST_ID = process.env.GIST_ID;
 const GH_TOKEN = process.env.GH_TOKEN;
 
@@ -26,7 +26,7 @@ let botData = {
     timeoutSeconds: 60
 };
 
-// Gist se saved data load karne ka function
+// Gist se data load karne ka function
 async function loadGistData() {
     if (!GIST_ID || !GH_TOKEN) return console.log("⚠️ GIST_ID ya GH_TOKEN environment variables me missing hai!");
     try {
@@ -91,14 +91,22 @@ const commands = [
 
 client.on('ready', async () => {
     console.log(`🚨 Xeon Police is online! Logged in as ${client.user.tag}`);
+    
+    // Bot ko 🟢 GREEN ONLINE STATUS par set karne ke liye code
+    client.user.setPresence({
+        activities: [{ name: 'Xeon Plays Server 🚓', type: ActivityType.Watching }],
+        status: 'online'
+    });
+
     await loadGistData();
     
+    // Slash commands register karna
     const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
     try {
         await rest.put(Routes.applicationCommands(client.user.id), { body: commands });
-        console.log('Slash commands loaded successfully!');
+        console.log('✅ Slash commands loaded successfully!');
     } catch (error) {
-        console.error("Commands load karne me error:", error);
+        console.error("❌ Commands load karne me error:", error);
     }
 });
 
@@ -151,12 +159,11 @@ client.on('messageCreate', async (message) => {
     }
 });
 
-// Login Error Catching
+// Login & Error Handling
 if (!process.env.TOKEN) {
     console.error("❌ ERROR: TOKEN environment variable missing hai!");
 } else {
     client.login(process.env.TOKEN).catch(err => {
         console.error("❌ Discord Login Error:", err.message);
     });
-              }
-        
+                        }

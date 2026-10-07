@@ -17,7 +17,7 @@ const client = new Client({
 });
 
 // Config Settings
-const FLAGS_CHANNEL_ID = '123456789012345678'; // ⚠️ APNE FLAGS CHANNEL KI ID SE REPLACE KARO
+const FLAGS_CHANNEL_ID = '1557375457807310899'; // ⚠️ APNE FLAGS CHANNEL KI ID SE REPLACE KARO
 const GIST_ID = process.env.GIST_ID;
 const GH_TOKEN = process.env.GH_TOKEN;
 

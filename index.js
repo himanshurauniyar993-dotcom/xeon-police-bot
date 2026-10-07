@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, Permission
 const express = require('express');
 require('dotenv').config();
 
-// Web server 24/7 online rakhne ke liye (Render keep-alive)
+// Express web server (Render keep-alive & Uptime/Cron ping ke liye)
 const app = express();
 app.get('/', (req, res) => res.send('Xeon Police is active and guarding the server!'));
 app.listen(process.env.PORT || 3000, () => console.log('Web server is running.'));
@@ -16,8 +16,8 @@ const client = new Client({
     ]
 });
 
-// Settings & Config
-const FLAGS_CHANNEL_ID = '1557375457807310899'; // ⚠️ YAHAN APNE FLAGS CHANNEL KI ID CHANGE KARO
+// Config Settings
+const FLAGS_CHANNEL_ID = '123456789012345678'; // ⚠️ APNE FLAGS CHANNEL KI ID SE REPLACE KARO
 const GIST_ID = process.env.GIST_ID;
 const GH_TOKEN = process.env.GH_TOKEN;
 
@@ -26,7 +26,7 @@ let botData = {
     timeoutSeconds: 60
 };
 
-// Gist Se Data Load Karna
+// Gist se saved data load karne ka function
 async function loadGistData() {
     if (!GIST_ID || !GH_TOKEN) return console.log("⚠️ GIST_ID ya GH_TOKEN environment variables me missing hai!");
     try {
@@ -43,7 +43,7 @@ async function loadGistData() {
     }
 }
 
-// Gist Me Data Save Karna
+// Gist me data save karne ka function
 async function saveGistData() {
     if (!GIST_ID || !GH_TOKEN) return;
     try {
@@ -91,7 +91,7 @@ const commands = [
 
 client.on('ready', async () => {
     console.log(`🚨 Xeon Police is online! Logged in as ${client.user.tag}`);
-    await loadGistData(); // Bot start hone par purana saved data load karega
+    await loadGistData();
     
     const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
     try {
@@ -110,7 +110,7 @@ client.on('interactionCreate', async interaction => {
         const newWord = interaction.options.getString('word').toLowerCase();
         if (!botData.badWords.includes(newWord)) {
             botData.badWords.push(newWord);
-            await saveGistData(); // Gist me save karega
+            await saveGistData();
             await interaction.reply({ content: `✅ **${newWord}** blocklist me add and permanently save ho gaya hai.`, ephemeral: true });
         } else {
             await interaction.reply({ content: `⚠️ Ye word pehle se list me hai!`, ephemeral: true });
@@ -120,7 +120,7 @@ client.on('interactionCreate', async interaction => {
     if (interaction.commandName === 'bword_timeout') {
         const secs = interaction.options.getInteger('seconds');
         botData.timeoutSeconds = secs;
-        await saveGistData(); // Gist me save karega
+        await saveGistData();
         await interaction.reply({ content: `⏱️ Timeout time update karke **${secs} seconds** save kar diya gaya hai.`, ephemeral: true });
     }
 });
@@ -146,10 +146,17 @@ client.on('messageCreate', async (message) => {
             setTimeout(() => warningMsg.delete().catch(() => {}), 5000);
 
         } catch (error) {
-            console.error("Action lene me error aaya (Check bot role height & permissions):", error);
+            console.error("Action lene me error aaya (Check bot permissions & role position):", error);
         }
     }
 });
 
-client.login(process.env.TOKEN);
-                                    
+// Login Error Catching
+if (!process.env.TOKEN) {
+    console.error("❌ ERROR: TOKEN environment variable missing hai!");
+} else {
+    client.login(process.env.TOKEN).catch(err => {
+        console.error("❌ Discord Login Error:", err.message);
+    });
+              }
+        
